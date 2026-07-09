@@ -25,7 +25,6 @@
         <input type="number" id="km_arrivee" placeholder="KM Arrivée">
         <input type="text" id="point_depart" placeholder="Point de départ">
         <input type="text" id="destination" placeholder="Destination">
-        <!-- Le clic appelle directement la fonction envoyerDonnees() -->
         <button type="button" onclick="envoyerDonnees()">Enregistrer le trajet</button>
     </div>
     <div id="message"></div>
@@ -33,11 +32,11 @@
 
 <script>
     const SUPABASE_URL = "https://pckketidnitktkmqscik.supabase.co"; 
+    // Clé parfaitement nettoyée ici :
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTEzNzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA";
     
     const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    // Date du jour automatique
     document.getElementById('date_trajet').valueAsDate = new Date();
 
     async function envoyerDonnees() {
@@ -51,7 +50,6 @@
         const point_depart = document.getElementById('point_depart').value;
         const destination = document.getElementById('destination').value;
 
-        // Validation manuelle simple
         if (!nom || !prenom || !date_trajet || !km_depart || !km_arrivee || !point_depart || !destination) {
             msg.style.color = "red";
             msg.innerText = "⚠️ Veuillez remplir tous les champs.";
@@ -81,7 +79,6 @@
                 msg.style.color = "green";
                 msg.innerText = "✅ Trajet enregistré avec succès !";
                 
-                // Nettoyage partiel pour le coup d'après
                 document.getElementById('km_depart').value = '';
                 document.getElementById('km_arrivee').value = '';
             }
