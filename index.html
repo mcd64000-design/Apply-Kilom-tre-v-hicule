@@ -80,7 +80,7 @@
         };
 
         const { error } = await sb.from('trajets').insert(dataInsert);
-        
+        console.log("Résultat de l'envoi :
         if (error) {
             console.error("Erreur détaillée :", error);
             msg.innerText = "Erreur : " + error.message;
