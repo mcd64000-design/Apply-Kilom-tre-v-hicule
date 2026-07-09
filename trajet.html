@@ -16,7 +16,7 @@
 <body>
 
 <div class="box">
-    <h2>🚗 Nouveau Trajet (Version 2)</h2>
+    <h2>🚗 Nouveau Trajet</h2>
     <div>
         <input type="text" id="nom" placeholder="Nom">
         <input type="text" id="prenom" placeholder="Prénom">
@@ -31,11 +31,11 @@
 </div>
 
 <script>
-    const url = "https://pckketidnitktkmqscik.supabase.co"; 
-    const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTEzNzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA";
+    const urlSupabase = "https://pckketidnitktkmqscik.supabase.co"; 
+    const keySupabase = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTEzNzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA";
     
-    // Ici on change le nom pour être SÛR qu'il n'y ait aucun conflit de doublon
-    const clientSupabase = window.Supabase.createClient(url, key);
+    // Changement de nom ici pour éviter le conflit avec le script externe
+    const bddSupabase = window.supabase.createClient(urlSupabase, keySupabase);
     
     if (document.getElementById('date_trajet')) {
         document.getElementById('date_trajet').valueAsDate = new Date();
@@ -72,7 +72,7 @@
         };
 
         try {
-            const { error } = await clientSupabase.from('trajets').insert([payload]);
+            const { error } = await bddSupabase.from('trajets').insert([payload]);
 
             if (error) {
                 msg.style.color = "red";
