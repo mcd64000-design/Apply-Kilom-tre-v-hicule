@@ -47,10 +47,10 @@
 </div>
 
 <script>
-    // --- CONFIGURATION ---
-    const sbUrl = "https://pckketidnitktkmqscik.supabase.co"; 
-    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTE3MzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
-    const sb = window.supabase.createClient(sbUrl, sbKey);
+    let sb;
+    const sbUrl = "VOTRE_URL_SUPABASE"; 
+    const sbKey = "VOTRE_CLE_ANON"; 
+    sb = window.supabase.createClient(sbUrl, sbKey);
 
     document.getElementById('date_trajet').valueAsDate = new Date();
 
@@ -81,18 +81,38 @@
         const { error } = await sb.from('trajets').insert([dataInsert]);
         
         if (error) {
-            console.error("Erreur détaillée :", error);
+            console.error("Erreur :", error);
             msg.innerText = "Erreur : " + error.message;
         } else {
             msg.innerText = "✅ Succès !";
+            // Vidage des champs
+            document.getElementById('nom').value = '';
+            document.getElementById('prenom').value = '';
+            document.getElementById('pt_dep').value = '';
+            document.getElementById('dest').value = '';
+            document.getElementById('km_dep').value = '';
+            document.getElementById('km_arr').value = '';
+            setTimeout(() => { msg.innerText = ""; }, 3000);
         }
     }
 
     async function charger() {
-        const { data } = await sb.from('trajets').select('*').limit(8).order('id', { ascending: false });
-        document.getElementById('liste').innerHTML = (data || []).map(t => 
-            `<div style="font-size:12px; padding:8px; border-bottom:1px solid #eee;">
-                <strong>${t.destination}</strong> (${t.date_trajet})
+        const liste = document.getElementById('liste');
+        liste.innerHTML = "Chargement...";
+        
+        const { data, error } = await sb.from('trajets').select('*').limit(8).order('id', { ascending: false });
+        
+        if (error) {
+            liste.innerHTML = "Erreur de chargement.";
+            return;
+        }
+
+        liste.innerHTML = (data || []).map(t => 
+            `<div style="font-size:12px; padding:10px; border-bottom:1px solid #ccc; margin-bottom:5px; background: #fff;">
+                <strong>${t.date_trajet} - ${t.nom} ${t.prenom}</strong><br>
+                Départ : ${t.point_depart} ➔ Arrivée : ${t.destination}<br>
+                Kilomètres : ${t.km_depart} ➔ ${t.km_arrivee} (${t.km_arrivee - t.km_depart} km)<br>
+                Essence : ${t.jauge_essence}/8 | Propre : ${t.voiture_propre}
             </div>`
         ).join('');
     }
