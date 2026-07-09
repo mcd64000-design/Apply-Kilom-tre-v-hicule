@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi Kilométrique</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
+        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        input { width: 100%; padding: 8px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #0070f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        #message { margin-top: 15px; text-align: center; font-weight: bold; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>🚗 Nouveau Trajet</h2>
+    <form id="tripForm">
+        <input type="text" id="nom" placeholder="Nom" required>
+        <input type="text" id="prenom" placeholder="Prénom" required>
+        <input type="date" id="date_trajet" required>
+        <input type="number" id="km_depart" placeholder="KM Départ" required>
+        <input type="number" id="km_arrivee" placeholder="KM Arrivée" required>
+        <input type="text" id="point_depart" placeholder="Point de départ" required>
+        <input type="text" id="destination" placeholder="Destination" required>
+        <button type="submit">Enregistrer le trajet</button>
+    </form>
+    <div id="message"></div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://pckketidnitktkmqscik.supabase.co"; 
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTEzNzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA";
+    
+    const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // Met la date du jour automatiquement
+    document.getElementById('date_trajet').valueAsDate = new Date();
+
+    document.getElementById('tripForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); // Bloque le rechargement de la page de force
+        
+        const msg = document.getElementById('message');
+        msg.style.color = "orange";
+        msg.innerText = "⏳ Envoi en cours...";
+
+        const payload = {
+            nom: document.getElementById('nom').value,
+            prenom: document.getElementById('prenom').value,
+            date_trajet: document.getElementById('date_trajet').value,
+            km_depart: parseInt(document.getElementById('km_depart').value),
+            km_arrivee: parseInt(document.getElementById('km_arrivee').value),
+            point_depart: document.getElementById('point_depart').value,
+            destination: document.getElementById('destination').value
+        };
+
+        try {
+            const { error } = await supabase.from('trajets').insert([payload]);
+
+            if (error) {
+                msg.style.color = "red";
+                msg.innerText = "❌ Erreur : " + error.message;
+            } else {
+                msg.style.color = "green";
+                msg.innerText = "✅ Trajet enregistré avec succès !";
+                
+                // Vide juste les kilomètres pour le prochain trajet
+                document.getElementById('km_depart').value = '';
+                document.getElementById('km_arrivee').value = '';
+            }
+        } catch (err) {
+            msg.style.color = "red";
+            msg.innerText = "💥 Erreur système : " + err.message;
+        }
+    });
+</script>
+</body>
+</html>
