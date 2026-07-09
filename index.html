@@ -76,7 +76,7 @@
             km_depart: parseInt(document.getElementById('km_dep').value),
             km_arrivee: parseInt(document.getElementById('km_arr').value),
             jauge_essence: parseInt(document.getElementById('jauge').value),
-            voiture_popre: document.getElementById('propre').value
+            voiture_propre: document.getElementById('propre').value
         };
 
         const { error } = await sb.from('trajets').insert(dataInsert);
