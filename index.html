@@ -80,7 +80,15 @@
         };
 
         const { error } = await sb.from('trajets').insert(dataInsert);
-        console.log("Résultat de l'envoi :", { error });
+                const { error } = await sb.from('trajets').insert([dataInsert]);
+        
+        if (error) {
+            console.error("Erreur détaillée :", error);
+            msg.innerText = "Erreur : " + error.message;
+        } else {
+            msg.innerText = "✅ Succès !";
+        }
+
         
         if (error) {
             console.error("Erreur détaillée :", error);
