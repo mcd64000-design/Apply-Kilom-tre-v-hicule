@@ -32,12 +32,15 @@
 
 <script>
     const SUPABASE_URL = "https://pckketidnitktkmqscik.supabase.co"; 
-    // Clé parfaitement nettoyée ici :
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTEzNzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA";
     
-    const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Création unique du client
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    document.getElementById('date_trajet').valueAsDate = new Date();
+    // Date du jour automatique
+    if (document.getElementById('date_trajet')) {
+        document.getElementById('date_trajet').valueAsDate = new Date();
+    }
 
     async function envoyerDonnees() {
         const msg = document.getElementById('message');
@@ -78,7 +81,6 @@
             } else {
                 msg.style.color = "green";
                 msg.innerText = "✅ Trajet enregistré avec succès !";
-                
                 document.getElementById('km_depart').value = '';
                 document.getElementById('km_arrivee').value = '';
             }
