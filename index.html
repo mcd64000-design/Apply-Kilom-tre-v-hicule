@@ -29,6 +29,7 @@
         <input type="text" id="nom" placeholder="Nom">
         <input type="text" id="prenom" placeholder="Prénom">
         <input type="date" id="date_trajet">
+        <input type="time" id="heure_trajet">
         <input type="text" id="pt_dep" placeholder="Point de départ">
         <input type="text" id="dest" placeholder="Destination">
         <input type="number" id="km_dep" placeholder="KM Départ">
@@ -48,8 +49,8 @@
 
 <script>
     let sb;
-    const sbUrl = "https://pckketidnitktkmqscik.supabase.co"; 
-    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTE3MzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
+    const sbUrl = "VOTRE_URL_SUPABASE"; 
+    const sbKey = "VOTRE_CLE_ANON"; 
     sb = window.supabase.createClient(sbUrl, sbKey);
 
     document.getElementById('date_trajet').valueAsDate = new Date();
@@ -66,9 +67,7 @@
         const msg = document.getElementById('msg');
         msg.innerText = "Envoi...";
         
-        const now = new Date();
-        const heureActuelle = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-        const dateComplete = document.getElementById('date_trajet').value + " " + heureActuelle;
+        const dateComplete = document.getElementById('date_trajet').value + " " + document.getElementById('heure_trajet').value;
 
         const dataInsert = {
             nom: document.getElementById('nom').value,
@@ -89,8 +88,11 @@
             msg.innerText = "Erreur : " + error.message;
         } else {
             msg.innerText = "✅ Succès !";
+            // Vidage des champs
             document.getElementById('nom').value = '';
             document.getElementById('prenom').value = '';
+            document.getElementById('date_trajet').valueAsDate = new Date();
+            document.getElementById('heure_trajet').value = '';
             document.getElementById('pt_dep').value = '';
             document.getElementById('dest').value = '';
             document.getElementById('km_dep').value = '';
@@ -103,7 +105,7 @@
         const liste = document.getElementById('liste');
         liste.innerHTML = "Chargement...";
         
-        const { data, error } = await sb.from('trajets').select('*').limit(8).order('id', { ascending: false });
+        const { data, error } = await sb.from('trajets').select('*').limit(8).order('date_trajet', { ascending: false });
         
         if (error) {
             liste.innerHTML = "Erreur de chargement.";
