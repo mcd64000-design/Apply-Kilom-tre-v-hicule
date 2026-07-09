@@ -48,8 +48,8 @@
 
 <script>
     // --- CONFIGURATION ---
-    const sbUrl = "https://pckketidnitktkmqscik.supabase.co"; 
-    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTE3MzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
+    const sbUrl = "VOTRE_URL_SUPABASE"; 
+    const sbKey = "VOTRE_CLE_ANON"; 
     const sb = window.supabase.createClient(sbUrl, sbKey);
 
     document.getElementById('date_trajet').valueAsDate = new Date();
@@ -66,7 +66,6 @@
         const msg = document.getElementById('msg');
         msg.innerText = "Envoi...";
         
-        // Construction de l'objet correspondant à votre table SQL
         const dataInsert = {
             nom: document.getElementById('nom').value,
             prenom: document.getElementById('prenom').value,
@@ -75,22 +74,11 @@
             destination: document.getElementById('dest').value,
             km_depart: parseInt(document.getElementById('km_dep').value),
             km_arrivee: parseInt(document.getElementById('km_arr').value),
-                        jauge_essence: parseInt(document.getElementById('jauge').value),
+            jauge_essence: parseInt(document.getElementById('jauge').value),
             voiture_propre: document.getElementById('propre').value
         };
 
         const { error } = await sb.from('trajets').insert([dataInsert]);
-        
-        if (error) {
-            console.error("Erreur détaillée :", error);
-            msg.innerText = "Erreur : " + error.message;
-        } else {
-            msg.innerText = "✅ Succès !";
-        }
-    }
-
-        }
-
         
         if (error) {
             console.error("Erreur détaillée :", error);
