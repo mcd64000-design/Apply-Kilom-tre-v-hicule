@@ -2,7 +2,6 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi Kilométrique</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -29,15 +28,16 @@
         <input type="text" id="nom" placeholder="Nom">
         <input type="text" id="prenom" placeholder="Prénom">
         <input type="date" id="date_trajet">
+        <input type="text" id="pt_dep" placeholder="Point de départ">
         <input type="text" id="dest" placeholder="Destination">
         <input type="number" id="km_dep" placeholder="KM Départ">
         <input type="number" id="km_arr" placeholder="KM Arrivée">
-        <label style="font-size: 14px;">Jauge essence (1-8):</label>
+        <label>Jauge essence (1-8):</label>
         <input type="range" id="jauge" min="1" max="8" value="4">
-        <label style="font-size: 14px;">Voiture propre ?</label>
+        <label>Voiture propre ?</label>
         <select id="propre"><option value="Oui">Oui</option><option value="Non">Non</option></select>
         <button class="main" onclick="envoyerTrajet()">Enregistrer</button>
-        <p id="msg" style="text-align:center; font-weight:bold;"></p>
+        <p id="msg"></p>
     </div>
 
     <div id="hist" class="page">
@@ -46,9 +46,8 @@
 </div>
 
 <script>
-    // --- VOS IDENTIFIANTS ICI ---
-    const sbUrl = "https://pckketidnitktkmqscik.supabase.co"; 
-    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTE3MzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
+    const sbUrl = "VOTRE_URL_SUPABASE"; 
+    const sbKey = "VOTRE_CLE_ANON"; 
     const sb = window.supabase.createClient(sbUrl, sbKey);
 
     document.getElementById('date_trajet').valueAsDate = new Date();
@@ -65,33 +64,27 @@
         const msg = document.getElementById('msg');
         msg.innerText = "Envoi...";
         
-        const dataInsert = {
+        // Noms exacts selon votre SQL
+        const payload = {
             nom: document.getElementById('nom').value,
             prenom: document.getElementById('prenom').value,
             date_trajet: document.getElementById('date_trajet').value,
+            point_depart: document.getElementById('pt_dep').value,
             destination: document.getElementById('dest').value,
             km_depart: parseInt(document.getElementById('km_dep').value),
             km_arrivee: parseInt(document.getElementById('km_arr').value),
             jauge_essence: parseInt(document.getElementById('jauge').value),
-            voiture_propre: document.getElementById('propre').value
+            voiture_popre: document.getElementById('propre').value
         };
 
-        const { error } = await sb.from('trajets').insert([dataInsert]);
-        
-        if (error) {
-            console.error(error);
-            msg.innerText = "Erreur : " + error.message;
-        } else {
-            msg.innerText = "✅ Succès !";
-        }
+        const { error } = await sb.from('trajets').insert([payload]);
+        msg.innerText = error ? "Erreur : " + error.message : "✅ Succès !";
     }
 
     async function charger() {
-        const { data } = await sb.from('trajets').select('*').limit(8).order('created_at', { ascending: false });
+        const { data } = await sb.from('trajets').select('*').limit(8).order('id', { ascending: false });
         document.getElementById('liste').innerHTML = (data || []).map(t => 
-            `<div style="font-size:12px; padding:8px; border-bottom:1px solid #eee;">
-                <strong>${t.destination}</strong> | ${t.date_trajet} | Ess: ${t.jauge_essence}/8
-            </div>`
+            `<div style="padding:8px; border-bottom:1px solid #eee;">${t.destination} (${t.date_trajet})</div>`
         ).join('');
     }
 </script>
