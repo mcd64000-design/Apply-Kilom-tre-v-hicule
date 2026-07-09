@@ -26,7 +26,6 @@
         <button class="tab-btn" onclick="showPage('hist', this)">Historique</button>
     </div>
 
-    <!-- PAGE FORMULAIRE -->
     <div id="form" class="page active">
         <input type="text" id="nom" placeholder="Nom">
         <input type="text" id="prenom" placeholder="Prénom">
@@ -34,26 +33,23 @@
         <input type="text" id="dest" placeholder="Destination">
         <input type="number" id="km_dep" placeholder="KM Départ">
         <input type="number" id="km_arr" placeholder="KM Arrivée">
-        
         <label style="font-size: 14px;">Jauge essence (1/8 à 8/8):</label>
         <input type="range" id="jauge" min="1" max="8" value="4">
-        
         <label style="font-size: 14px;">Voiture propre ?</label>
         <select id="propre"><option value="Oui">Oui</option><option value="Non">Non</option></select>
-        
         <button onclick="enregistrer()">Enregistrer le trajet</button>
         <p id="msg" style="text-align:center; font-weight:bold;"></p>
     </div>
 
-    <!-- PAGE HISTORIQUE -->
     <div id="hist" class="page">
         <div id="liste">Chargement...</div>
     </div>
 </div>
 
 <script>
+    // Initialisation unique
     const url = "https://pckketidnitktkmqscik.supabase.co"; 
-    const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTE3MzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
+    const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTEzNzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
     const supabase = window.supabase.createClient(url, key);
 
     document.getElementById('date_trajet').valueAsDate = new Date();
@@ -68,20 +64,20 @@
 
     async function enregistrer() {
         const msg = document.getElementById('msg');
-        msg.innerText = "Envoi...";
+        msg.innerText = "Envoi en cours...";
         
         const { error } = await supabase.from('trajets').insert([{
             nom: document.getElementById('nom').value,
             prenom: document.getElementById('prenom').value,
             date_trajet: document.getElementById('date_trajet').value,
             destination: document.getElementById('dest').value,
-            km_depart: document.getElementById('km_dep').value,
-            km_arrivee: document.getElementById('km_arr').value,
-            jauge_essence: document.getElementById('jauge').value,
+            km_depart: parseInt(document.getElementById('km_dep').value),
+            km_arrivee: parseInt(document.getElementById('km_arr').value),
+            jauge_essence: parseInt(document.getElementById('jauge').value),
             voiture_propre: document.getElementById('propre').value
         }]);
         
-        msg.innerText = error ? "Erreur !" : "✅ Enregistré !";
+        msg.innerText = error ? "Erreur : " + error.message : "✅ Enregistré !";
     }
 
     async function charger() {
