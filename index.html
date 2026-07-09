@@ -2,18 +2,19 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi Kilométrique</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
         .box { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; cursor: pointer; background: #ddd; }
+        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; cursor: pointer; background: #ddd; font-weight: bold; }
         .tab-btn.active { background: #0070f3; color: white; }
         .page { display: none; }
         .page.active { display: block; }
-        input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button.main { width: 100%; padding: 12px; background: #0070f3; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button.main { width: 100%; padding: 12px; background: #0070f3; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -31,12 +32,12 @@
         <input type="text" id="dest" placeholder="Destination">
         <input type="number" id="km_dep" placeholder="KM Départ">
         <input type="number" id="km_arr" placeholder="KM Arrivée">
-        <label>Jauge essence (1-8):</label>
+        <label style="font-size: 14px;">Jauge essence (1-8):</label>
         <input type="range" id="jauge" min="1" max="8" value="4">
-        <label>Voiture propre ?</label>
+        <label style="font-size: 14px;">Voiture propre ?</label>
         <select id="propre"><option value="Oui">Oui</option><option value="Non">Non</option></select>
         <button class="main" onclick="envoyerTrajet()">Enregistrer</button>
-        <p id="msg"></p>
+        <p id="msg" style="text-align:center; font-weight:bold;"></p>
     </div>
 
     <div id="hist" class="page">
@@ -45,9 +46,9 @@
 </div>
 
 <script>
-    // --- VOS CONFIGURATIONS ---
-    const sbUrl = "https://pckketidnitktkmqscik.supabase.co"; 
-    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTE3MzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
+    // --- VOS IDENTIFIANTS ICI ---
+    const sbUrl = "VOTRE_URL_SUPABASE"; 
+    const sbKey = "VOTRE_CLE_ANON"; 
     const sb = window.supabase.createClient(sbUrl, sbKey);
 
     document.getElementById('date_trajet').valueAsDate = new Date();
@@ -64,7 +65,7 @@
         const msg = document.getElementById('msg');
         msg.innerText = "Envoi...";
         
-        const payload = {
+        const dataInsert = {
             nom: document.getElementById('nom').value,
             prenom: document.getElementById('prenom').value,
             date_trajet: document.getElementById('date_trajet').value,
@@ -75,15 +76,21 @@
             voiture_propre: document.getElementById('propre').value
         };
 
-        const { error } = await sb.from('trajets').insert([payload]);
-        msg.innerText = error ? "Erreur : " + error.message : "✅ Succès !";
+        const { error } = await sb.from('trajets').insert([dataInsert]);
+        
+        if (error) {
+            console.error(error);
+            msg.innerText = "Erreur : " + error.message;
+        } else {
+            msg.innerText = "✅ Succès !";
+        }
     }
 
     async function charger() {
         const { data } = await sb.from('trajets').select('*').limit(8).order('created_at', { ascending: false });
         document.getElementById('liste').innerHTML = (data || []).map(t => 
-            `<div style="font-size:12px; margin-bottom:5px; border-bottom:1px solid #eee;">
-                <strong>${t.destination}</strong> (${t.date_trajet}) - Ess: ${t.jauge_essence}/8
+            `<div style="font-size:12px; padding:8px; border-bottom:1px solid #eee;">
+                <strong>${t.destination}</strong> | ${t.date_trajet} | Ess: ${t.jauge_essence}/8
             </div>`
         ).join('');
     }
