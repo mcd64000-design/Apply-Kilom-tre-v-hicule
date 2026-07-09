@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi Kilométrique</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -37,7 +38,7 @@
         <label>Voiture propre ?</label>
         <select id="propre"><option value="Oui">Oui</option><option value="Non">Non</option></select>
         <button class="main" onclick="envoyerTrajet()">Enregistrer</button>
-        <p id="msg"></p>
+        <p id="msg" style="text-align:center; font-weight:bold;"></p>
     </div>
 
     <div id="hist" class="page">
@@ -46,8 +47,9 @@
 </div>
 
 <script>
-    const sbUrl = "https://pckketidnitktkmqscik.supabase.co"; 
-    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTE3MzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
+    // --- CONFIGURATION ---
+    const sbUrl = "VOTRE_URL_SUPABASE"; 
+    const sbKey = "VOTRE_CLE_ANON"; 
     const sb = window.supabase.createClient(sbUrl, sbKey);
 
     document.getElementById('date_trajet').valueAsDate = new Date();
@@ -64,8 +66,8 @@
         const msg = document.getElementById('msg');
         msg.innerText = "Envoi...";
         
-        // Noms exacts selon votre SQL
-        const payload = {
+        // Construction de l'objet correspondant à votre table SQL
+        const dataInsert = {
             nom: document.getElementById('nom').value,
             prenom: document.getElementById('prenom').value,
             date_trajet: document.getElementById('date_trajet').value,
@@ -77,14 +79,22 @@
             voiture_popre: document.getElementById('propre').value
         };
 
-        const { error } = await sb.from('trajets').insert([payload]);
-        msg.innerText = error ? "Erreur : " + error.message : "✅ Succès !";
+        const { error } = await sb.from('trajets').insert(dataInsert);
+        
+        if (error) {
+            console.error("Erreur détaillée :", error);
+            msg.innerText = "Erreur : " + error.message;
+        } else {
+            msg.innerText = "✅ Succès !";
+        }
     }
 
     async function charger() {
         const { data } = await sb.from('trajets').select('*').limit(8).order('id', { ascending: false });
         document.getElementById('liste').innerHTML = (data || []).map(t => 
-            `<div style="padding:8px; border-bottom:1px solid #eee;">${t.destination} (${t.date_trajet})</div>`
+            `<div style="font-size:12px; padding:8px; border-bottom:1px solid #eee;">
+                <strong>${t.destination}</strong> (${t.date_trajet})
+            </div>`
         ).join('');
     }
 </script>
