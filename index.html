@@ -1,4 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Suivi Kilométrique</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
+        .box { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; cursor: pointer; background: #ddd; }
+        .tab-btn.active { background: #0070f3; color: white; }
+        .page { display: none; }
+        .page.active { display: block; }
+        input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button.main { width: 100%; padding: 12px; background: #0070f3; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showPage('form', this)">Nouveau</button>
+        <button class="tab-btn" onclick="showPage('hist', this)">Historique</button>
+    </div>
+
+    <div id="form" class="page active">
+        <input type="text" id="nom" placeholder="Nom">
+        <input type="text" id="prenom" placeholder="Prénom">
+        <input type="date" id="date_trajet">
+        <input type="text" id="dest" placeholder="Destination">
+        <input type="number" id="km_dep" placeholder="KM Départ">
+        <input type="number" id="km_arr" placeholder="KM Arrivée">
+        <label>Jauge essence (1-8):</label>
+        <input type="range" id="jauge" min="1" max="8" value="4">
+        <label>Voiture propre ?</label>
+        <select id="propre"><option value="Oui">Oui</option><option value="Non">Non</option></select>
+        <button class="main" onclick="envoyerTrajet()">Enregistrer</button>
+        <p id="msg"></p>
+    </div>
+
+    <div id="hist" class="page">
+        <div id="liste">Chargement...</div>
+    </div>
+</div>
+
+<script>
+    // --- VOS CONFIGURATIONS ---
+    const sbUrl = "VOTRE_URL_SUPABASE_ICI"; 
+    const sbKey = "VOTRE_CLE_ANON_ICI"; 
+    const sb = window.supabase.createClient(sbUrl, sbKey);
+
+    document.getElementById('date_trajet').valueAsDate = new Date();
+
+    function showPage(p, btn) {
+        document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+        document.getElementById(p).classList.add('active');
+        if(btn) btn.classList.add('active');
+        if(p === 'hist') charger();
+    }
+
     async function envoyerTrajet() {
+        const msg = document.getElementById('msg');
+        msg.innerText = "Envoi...";
+        
         const payload = {
             nom: document.getElementById('nom').value,
             prenom: document.getElementById('prenom').value,
@@ -10,12 +75,18 @@
             voiture_propre: document.getElementById('propre').value
         };
 
-        const { data, error } = await sb.from('trajets').insert([payload]);
-        
-        if (error) {
-            console.error("Détail de l'erreur :", error);
-            document.getElementById('msg').innerText = "Erreur : " + error.message;
-        } else {
-            document.getElementById('msg').innerText = "✅ Succès !";
-        }
+        const { error } = await sb.from('trajets').insert([payload]);
+        msg.innerText = error ? "Erreur : " + error.message : "✅ Succès !";
     }
+
+    async function charger() {
+        const { data } = await sb.from('trajets').select('*').limit(8).order('created_at', { ascending: false });
+        document.getElementById('liste').innerHTML = (data || []).map(t => 
+            `<div style="font-size:12px; margin-bottom:5px; border-bottom:1px solid #eee;">
+                <strong>${t.destination}</strong> (${t.date_trajet}) - Ess: ${t.jauge_essence}/8
+            </div>`
+        ).join('');
+    }
+</script>
+</body>
+</html>
