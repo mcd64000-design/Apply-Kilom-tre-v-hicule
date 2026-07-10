@@ -1,15 +1,67 @@
-<!-- ... (Tout ton code précédent reste inchangé jusqu'au footer) ... -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi Trajets</title>
+    <!-- Chargement de Supabase client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .tab-content { display: none; }
+        .active { display: block; }
+        .footer-btn { margin-top: 20px; color: blue; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
 
-<div class="footer-btn" onclick="document.getElementById('modal-conditions').style.display='flex'">
-    Conditions d'utilisation
-</div>
+    <!-- Onglets -->
+    <button onclick="showTab('form')">Nouveau Trajet</button>
+    <button onclick="showTab('history')">Historique</button>
 
-<!-- ... (Fin de ton code précédent) ... -->
+    <!-- Page Formulaire -->
+    <div id="form" class="tab-content active">
+        <h2>Nouveau Trajet</h2>
+        <input type="number" id="km" placeholder="Kilomètres">
+        <button onclick="enregistrerTrajet()">Enregistrer mon trajet</button>
+    </div>
 
-<!-- Ajout de la modale pour l'image -->
-<div id="modal-conditions" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;" onclick="this.style.display='none'">
-    <img src="TON_URL_RAW_ICI" style="max-width:90%; max-height:90%; border-radius:15px;" onclick="event.stopPropagation()">
-</div>
+    <!-- Page Historique -->
+    <div id="history" class="tab-content">
+        <h2>Historique</h2>
+        <div id="liste-trajets"></div>
+    </div>
 
+    <!-- Lien Conditions -->
+    <div class="footer-btn" onclick="document.getElementById('modal-conditions').style.display='flex'">
+        Conditions d'utilisation
+    </div>
+
+    <!-- Modale Image -->
+    <div id="modal-conditions" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;" onclick="this.style.display='none'">
+        <img src="TON_URL_RAW_ICI" style="max-width:90%; max-height:90%; border-radius:15px;" onclick="event.stopPropagation()">
+    </div>
+
+    <script>
+        // Configuration Supabase (Tes clés ici)
+        const supabase = supabase.createClient('URL_SUPABASE', 'CLE_API_SUPABASE');
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(tabId === 'history') charger();
+        }
+
+        async function enregistrerTrajet() {
+            const km = document.getElementById('km').value;
+            await supabase.from('trajets').insert([{ km: km }]);
+            alert('Enregistré !');
+        }
+
+        async function charger() {
+            const { data } = await supabase.from('trajets').select('*').limit(5).order('created_at', { ascending: false });
+            document.getElementById('liste-trajets').innerHTML = data.map(t => `<p>${t.km} km</p>`).join('');
+        }
+    </script>
 </body>
 </html>
