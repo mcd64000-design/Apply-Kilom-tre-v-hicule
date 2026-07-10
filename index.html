@@ -65,7 +65,7 @@
         
         <button class="main" onclick="envoyerTrajet()">Enregistrer mon trajet</button>
         
-        <div class="footer-btn" onclick="alert('Fonctionnalité à venir : Affichage des conditions d\'utilisation')">
+        <div class="footer-btn" onclick="document.getElementById('modal-conditions').style.display='flex'">
             Conditions d'utilisation
         </div>
         
@@ -73,6 +73,11 @@
     </div>
 
     <div id="hist" class="page"><div id="liste">Chargement...</div></div>
+</div>
+
+<!-- Modale pour l'affichage de l'image -->
+<div id="modal-conditions" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;" onclick="this.style.display='none'">
+    <img src="https://github.com/mcd64000-design/Apply-Kilom-tre-v-hicule/blob/main/images.jpg?raw=true" style="max-width:90%; max-height:90%; border-radius:15px;" onclick="event.stopPropagation()">
 </div>
 
 <script>
