@@ -1,142 +1,15 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Suivi Trajet - Savencia</title>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f8fa; padding: 15px; display: flex; justify-content: center; margin: 0; }
-        .box { background: white; padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(27, 74, 98, 0.08); box-sizing: border-box; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; background: #e6f0f5; color: #1b4a62; font-weight: bold; transition: 0.3s ease; }
-        .tab-btn.active { background: #008ed2; color: white; }
-        .page { display: none; }
-        .page.active { display: block; }
-        label { display: block; font-size: 12px; font-weight: 700; color: #7a93a1; text-transform: uppercase; margin-top: 12px; margin-left: 2px; letter-spacing: 0.5px; }
-        input:not([type="checkbox"]), select { width: 100%; padding: 12px; margin: 4px 0 0 0; border: 2px solid #e1e9ed; border-radius: 10px; box-sizing: border-box; font-size: 15px; color: #1b4a62; background-color: #fafbfc; transition: border-color 0.3s, background-color 0.3s; }
-        input:focus, select:focus { outline: none; border-color: #008ed2; background-color: white; }
-        .grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .section-bloc { background: #f8fafc; border: 1px solid #eef2f5; padding: 12px; border-radius: 12px; margin-top: 14px; }
-        .section-bloc h3 { margin: 0 0 5px 0; font-size: 13px; color: #1b4a62; font-weight: bold; border-bottom: 1px solid #e1e9ed; padding-bottom: 5px; }
-        button.main { width: 100%; padding: 15px; background: #008ed2; color: white; border: none; border-radius: 12px; cursor: pointer; margin-top: 20px; font-weight: bold; font-size: 16px; transition: background 0.2s; }
-        button.main:hover { background: #1b4a62; }
-        input[type="range"] { accent-color: #c46615; width: 100%; margin-top: 8px; }
-        .footer-btn { margin-top: 25px; text-align: center; font-size: 12px; color: #69b9ec; cursor: pointer; text-decoration: underline; font-weight: 500; }
-    </style>
-</head>
-<body>
+<!-- ... (Tout ton code précédent reste inchangé jusqu'au footer) ... -->
 
-<div class="box">
-    <div class="tabs">
-        <button class="tab-btn active" onclick="showPage('form', this)">Nouveau</button>
-        <button class="tab-btn" onclick="showPage('hist', this)">Historique</button>
-    </div>
-
-    <div id="form" class="page active">
-        <div><label for="nom">Conducteur</label><input type="text" id="nom" placeholder="Votre nom complet" oninput="sauvegarderLocal()"></div>
-        <div><label for="date_trajet">Date du trajet</label><input type="date" id="date_trajet" oninput="sauvegarderLocal()"></div>
-        
-        <div class="section-bloc">
-            <h3>🚗 DÉPART</h3>
-            <div><label for="dest_dep">Lieu de départ</label><input type="text" id="dest_dep" placeholder="Ville..." oninput="sauvegarderLocal()"></div>
-            <div class="grid-2x2">
-                <div><label for="heure_dep">Heure départ</label><input type="time" id="heure_dep" oninput="sauvegarderLocal()"></div>
-                <div><label for="km_dep">KM Compteur</label><input type="number" id="km_dep" placeholder="Ex: 142050" oninput="sauvegarderLocal()"></div>
-            </div>
-        </div>
-
-        <div class="section-bloc">
-            <h3>📍 ARRIVÉE</h3>
-            <div><label for="dest_arr">Lieu d'arrivée</label><input type="text" id="dest_arr" placeholder="Ville..." oninput="sauvegarderLocal()"></div>
-            <div class="grid-2x2">
-                <div><label for="heure_arr">Heure arrivée</label><input type="time" id="heure_arr" oninput="sauvegarderLocal()"></div>
-                <div><label for="km_arr">KM Compteur</label><input type="number" id="km_arr" placeholder="Ex: 142185" oninput="sauvegarderLocal()"></div>
-            </div>
-        </div>
-
-        <div><label>Niveau d'essence (Jauge 1-8)</label><input type="range" id="jauge" min="1" max="8" value="4" oninput="sauvegarderLocal()"></div>
-        <div><label for="propre">Propreté du véhicule</label><select id="propre" onchange="sauvegarderLocal()"><option value="Oui">Oui, la voiture est propre</option><option value="Non">Non, elle nécessite un nettoyage</option></select></div>
-        
-        <div style="margin: 20px 0 10px 0; font-size: 13px; color: #1b4a62; display: flex; align-items: flex-start; gap: 10px; line-height: 1.4;">
-            <input type="checkbox" id="certif" style="width: auto; margin-top: 3px; transform: scale(1.2); cursor: pointer;" onchange="sauvegarderLocal()">
-            <label for="certif" style="cursor: pointer; font-weight: 500; color: #1b4a62; text-transform: none; margin: 0;">Je certifie sur l'honneur posséder mon permis.</label>
-        </div>
-        
-        <button class="main" onclick="envoyerTrajet()">Enregistrer mon trajet</button>
-        
-        <div class="footer-btn" onclick="alert('Fonctionnalité à venir : Affichage des conditions d\'utilisation')">
-            Conditions d'utilisation
-        </div>
-        
-        <p id="msg" style="text-align:center; font-weight:bold; margin-top: 15px; font-size: 14px;"></p>
-    </div>
-
-    <div id="hist" class="page"><div id="liste">Chargement...</div></div>
+<div class="footer-btn" onclick="document.getElementById('modal-conditions').style.display='flex'">
+    Conditions d'utilisation
 </div>
 
-<script>
-    const sbUrl = "https://pckketidnitktkmqscik.supabase.co"; 
-    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTE3MzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
-    const sb = window.supabase.createClient(sbUrl, sbKey);
+<!-- ... (Fin de ton code précédent) ... -->
 
-    function sauvegarderLocal() {
-        const d = { nom: document.getElementById('nom').value, date_trajet: document.getElementById('date_trajet').value, lieu_depart: document.getElementById('dest_dep').value, lieu_arrivee: document.getElementById('dest_arr').value, heure_depart: document.getElementById('heure_dep').value, heure_arrivee: document.getElementById('heure_arr').value, km_depart: document.getElementById('km_dep').value, km_arrivee: document.getElementById('km_arr').value, jauge_essence: document.getElementById('jauge').value, voiture_propre: document.getElementById('propre').value, certif: document.getElementById('certif').checked };
-        localStorage.setItem('trajet_en_cours', JSON.stringify(d));
-    }
+<!-- Ajout de la modale pour l'image -->
+<div id="modal-conditions" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;" onclick="this.style.display='none'">
+    <img src="TON_URL_RAW_ICI" style="max-width:90%; max-height:90%; border-radius:15px;" onclick="event.stopPropagation()">
+</div>
 
-    function restaurerLocal() {
-        const s = localStorage.getItem('trajet_en_cours');
-        if (s) {
-            const d = JSON.parse(s);
-            document.getElementById('nom').value = d.nom || ''; document.getElementById('date_trajet').value = d.date_trajet || ''; document.getElementById('dest_dep').value = d.lieu_depart || ''; document.getElementById('dest_arr').value = d.lieu_arrivee || ''; document.getElementById('heure_dep').value = d.heure_depart || ''; document.getElementById('heure_arr').value = d.heure_arrivee || ''; document.getElementById('km_dep').value = d.km_depart || ''; document.getElementById('km_arr').value = d.km_arrivee || ''; document.getElementById('jauge').value = d.jauge_essence || 4; document.getElementById('propre').value = d.voiture_propre || 'Oui'; document.getElementById('certif').checked = d.certif || false;
-        }
-    }
-
-    async function envoyerTrajet() {
-        if (!document.getElementById('certif').checked) { alert("Veuillez certifier posséder votre permis."); return; }
-        const dataInsert = {
-            nom: document.getElementById('nom').value,
-            date_trajet: document.getElementById('date_trajet').value,
-            lieu_depart: document.getElementById('dest_dep').value,
-            lieu_arrivee: document.getElementById('dest_arr').value,
-            heure_depart: document.getElementById('heure_dep').value,
-            heure_arrivee: document.getElementById('heure_arr').value,
-            km_depart: parseInt(document.getElementById('km_dep').value) || 0,
-            km_arrivee: parseInt(document.getElementById('km_arr').value) || 0,
-            jauge_essence: parseInt(document.getElementById('jauge').value),
-            voiture_propre: document.getElementById('propre').value,
-            permis_valide: true
-        };
-        const { error } = await sb.from('trajets').insert([dataInsert]);
-        if (error) alert("Erreur : " + error.message);
-        else { alert("✅ Enregistré !"); localStorage.removeItem('trajet_en_cours'); location.reload(); }
-    }
-
-    async function charger() {
-        const list = document.getElementById('liste');
-        list.innerHTML = "<p style='text-align:center; color:#1b4a62;'>Chargement...</p>";
-        const { data, error } = await sb.from('trajets').select('*').limit(5).order('id', { ascending: false });
-        if (error) { list.innerHTML = "<p style='color:red;'>Erreur historique.</p>"; return; }
-        if (!data || data.length === 0) { list.innerHTML = "<p style='text-align:center; color:#1b4a62;'>Aucun trajet.</p>"; return; }
-        list.innerHTML = data.map(t => 
-            `<div style="font-size:13px; padding:12px; border-bottom:1px solid #e1e9ed; margin-bottom:8px; background: #fafafa; border-radius: 8px;">
-                <span style="color:#008ed2; font-weight:bold;">${t.date_trajet}</span> | ${t.heure_depart || '--:--'} ➔ ${t.heure_arrivee || '--:--'}<br>
-                <strong style="color:#1b4a62;">${t.nom}</strong> | <span style="color:#555;">${t.lieu_depart || '???'} ➔ ${t.lieu_arrivee || '???'}</span><br>
-                <span style="color:#555;">KM : ${t.km_depart} à ${t.km_arrivee} (${t.km_arrivee - t.km_depart} km)</span><br>
-                <span style="font-size:11px; color:#999;">Essence: ${t.jauge_essence}/8 | Propre: ${t.voiture_propre}</span>
-            </div>`
-        ).join('');
-    }
-
-    window.onload = restaurerLocal;
-    function showPage(p, btn) {
-        document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-        document.getElementById(p).classList.add('active');
-        btn.classList.add('active');
-        if(p === 'hist') charger();
-    }
-</script>
 </body>
 </html>
