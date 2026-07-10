@@ -76,8 +76,8 @@
 </div>
 
 <script>
-    const sbUrl = "https://pckketidnitktkmqscik.supabase.co"; 
-    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBja2tldGlkbml0a3RrbXFzY2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1OTc2MzYsImV4cCI6MjA5OTE3MzYzNn0.bwkJDCeD6iZAQCACEYLS9-UK9CwK0LMcKRAQdNzm1QA"; 
+    const sbUrl = "VOTRE_URL_SUPABASE"; 
+    const sbKey = "VOTRE_CLE_ANON"; 
     const sb = window.supabase.createClient(sbUrl, sbKey);
 
     function sauvegarderLocal() {
@@ -113,12 +113,29 @@
         else { alert("✅ Enregistré !"); localStorage.removeItem('trajet_en_cours'); location.reload(); }
     }
 
+    async function charger() {
+        const list = document.getElementById('liste');
+        list.innerHTML = "<p style='text-align:center; color:#1b4a62;'>Chargement...</p>";
+        const { data, error } = await sb.from('trajets').select('*').limit(5).order('id', { ascending: false });
+        if (error) { list.innerHTML = "<p style='color:red;'>Erreur historique.</p>"; return; }
+        if (!data || data.length === 0) { list.innerHTML = "<p style='text-align:center; color:#1b4a62;'>Aucun trajet.</p>"; return; }
+        list.innerHTML = data.map(t => 
+            `<div style="font-size:13px; padding:12px; border-bottom:1px solid #e1e9ed; margin-bottom:8px; background: #fafafa; border-radius: 8px;">
+                <span style="color:#008ed2; font-weight:bold;">${t.date_trajet}</span> | ${t.heure_depart || '--:--'} ➔ ${t.heure_arrivee || '--:--'}<br>
+                <strong style="color:#1b4a62;">${t.nom}</strong> | <span style="color:#555;">${t.lieu_depart || '???'} ➔ ${t.lieu_arrivee || '???'}</span><br>
+                <span style="color:#555;">KM : ${t.km_depart} à ${t.km_arrivee} (${t.km_arrivee - t.km_depart} km)</span><br>
+                <span style="font-size:11px; color:#999;">Essence: ${t.jauge_essence}/8 | Propre: ${t.voiture_propre}</span>
+            </div>`
+        ).join('');
+    }
+
     window.onload = restaurerLocal;
     function showPage(p, btn) {
         document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
         document.getElementById(p).classList.add('active');
         btn.classList.add('active');
+        if(p === 'hist') charger();
     }
 </script>
 </body>
