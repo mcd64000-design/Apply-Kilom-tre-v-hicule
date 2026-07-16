@@ -32,7 +32,7 @@
     display:flex;
     align-items:center;
     gap:12px;
-    max-width:520px;
+    max-width:720px;
     margin:0 auto;
   }
   .badge{
@@ -50,25 +50,10 @@
     margin:2px 0 0;font-size:19px;font-weight:700;
   }
   main{
-    max-width:520px;
+    max-width:720px;
     margin:0 auto;
     padding:20px 20px 60px;
   }
-  .step-indicator{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    margin-bottom:18px;
-    font-size:13px;
-    color:var(--muted);
-    font-weight:600;
-  }
-  .dot{
-    width:9px;height:9px;border-radius:50%;
-    background:var(--line);
-  }
-  .dot.active{background:var(--sav-blue);}
   .card{
     background:#fff;
     border:1px solid var(--line);
@@ -97,7 +82,8 @@
   input[type="text"],
   input[type="date"],
   input[type="time"],
-  input[type="number"]{
+  input[type="number"],
+  input[type="password"]{
     width:100%;
     padding:16px 14px;
     border:2px solid #c7d0d4;
@@ -184,6 +170,31 @@
     text-align:center;
     display:none;
   }
+  .etat-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .etat-btn{
+    padding:16px 10px;
+    border-radius:10px;
+    border:2px solid #c7d0d4;
+    background:#fff;
+    color:var(--ink);
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .etat-btn.selected[data-etat="Propre"]{
+    border-color:var(--ok);
+    background:#e8f5eb;
+    color:var(--ok);
+  }
+  .etat-btn.selected[data-etat="À nettoyer"]{
+    border-color:var(--sav-orange);
+    background:#fdf0e4;
+    color:var(--sav-orange);
+  }
   button.primary{
     width:100%;
     margin-top:24px;
@@ -209,45 +220,133 @@
     font-weight:600;
     display:none;
   }
-  .toggle-history{
-    width:100%;
-    background:none;
-    border:none;
-    color:var(--muted);
-    font-size:13px;
-    padding:8px;
-    cursor:pointer;
-    text-align:center;
-  }
-  .entries{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    margin-top:6px;
-  }
-  .entry{
+  .hidden{display:none !important;}
+
+  /* Liste déroulante des 5 derniers trajets */
+  details.public-list{
+    background:#fff;
     border:1px solid var(--line);
-    border-radius:8px;
-    padding:12px 14px;
-    font-size:13.5px;
-    border-left:3px solid var(--sav-blue);
+    border-radius:14px;
+    padding:6px 22px;
+    margin-bottom:18px;
   }
-  .entry .top{
-    display:flex;
-    justify-content:space-between;
+  details.public-list summary{
+    padding:16px 0;
+    font-size:16px;
     font-weight:700;
-    margin-bottom:6px;
+    color:var(--sav-teal);
+    cursor:pointer;
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
   }
-  .entry .top span:last-child{color:var(--sav-orange);}
-  .entry .meta{color:var(--muted);line-height:1.5;}
-  .empty{
+  details.public-list summary::-webkit-details-marker{display:none;}
+  details.public-list summary::after{
+    content:"▾";
+    color:var(--sav-blue);
+    font-size:18px;
+  }
+  details.public-list[open] summary::after{content:"▴";}
+  .mini-list{padding-bottom:16px;}
+  .mini-item{
+    padding:12px 0;
+    border-top:1px solid var(--line);
+    font-size:14px;
+    line-height:1.6;
+  }
+  .mini-item .who{font-weight:700;color:var(--ink);}
+  .mini-item .where{color:var(--sav-orange);font-weight:600;}
+  .mini-item .when{color:var(--muted);font-size:13px;}
+  .empty-mini{
     color:var(--muted);
     font-size:13.5px;
-    text-align:center;
-    padding:10px 0;
+    padding:14px 0;
   }
+
+  /* Espace responsable */
+  .admin-card{
+    border:1.5px dashed #c7d0d4;
+  }
+  .admin-card h2{font-size:16px;color:var(--muted);}
+  .lockrow{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .lockrow input{flex:1;}
+  .lockrow button{
+    background:var(--sav-teal);
+    color:#fff;
+    border:none;
+    padding:14px 18px;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .lock-error{
+    color:#b3261e;
+    font-size:13px;
+    margin-top:8px;
+    display:none;
+  }
+  .table-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:18px 0 16px;
+  }
+  .table-head h3{margin:0;font-size:16px;color:var(--ink);}
+  .table-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn-secondary{
+    background:#fff;
+    border:1.5px solid var(--sav-blue);
+    color:var(--sav-blue);
+    padding:9px 14px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-secondary:hover{background:var(--sav-blue);color:#fff;}
+  .table-wrap{
+    overflow-x:auto;
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+    min-width:760px;
+  }
+  thead th{
+    background:var(--sav-teal);
+    color:#fff;
+    text-align:left;
+    padding:10px 12px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:9px 12px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  tbody tr:nth-child(even){background:var(--paper);}
+  tbody tr:last-child td{border-bottom:none;}
+  td.dist{color:var(--sav-orange);font-weight:700;}
+  .empty-row td{
+    color:var(--muted);
+    text-align:center;
+    padding:20px;
+  }
+  #csvFileInput{display:none;}
   footer{
-    max-width:520px;
+    max-width:720px;
     margin:0 auto;
     padding:0 20px 30px;
     text-align:center;
@@ -260,9 +359,9 @@
     border-radius:20px;
     font-size:13px;
     cursor:pointer;
+    margin:4px;
   }
   .link-btn:hover{border-color:var(--sav-blue);color:var(--sav-blue);}
-  .hidden{display:none !important;}
 </style>
 </head>
 <body>
@@ -279,12 +378,6 @@
 
 <main>
 
-  <div class="step-indicator">
-    <span class="dot" id="dot1">●</span> Étape 1 : Départ
-    <span style="margin:0 6px;">—</span>
-    <span class="dot" id="dot2">●</span> Étape 2 : Retour
-  </div>
-
   <!-- ÉTAPE 1 : DÉPART -->
   <div class="card" id="departCard">
     <h2>Vous prenez le véhicule ?</h2>
@@ -292,6 +385,9 @@
 
     <label for="nom">Votre nom</label>
     <input type="text" id="nom" placeholder="Nom et prénom">
+
+    <label for="destination">Destination</label>
+    <input type="text" id="destination" placeholder="ex : Site de Lyon, RDV client...">
 
     <label for="kmDepart">Kilométrage actuel du véhicule</label>
     <input type="number" id="kmDepart" placeholder="ex : 45210" min="0" inputmode="numeric">
@@ -317,7 +413,7 @@
   <!-- ÉTAPE 2 : RETOUR -->
   <div class="card hidden" id="returnCard">
     <h2>Bon retour !</h2>
-    <p class="sub" id="returnSub">Il ne reste plus qu'à indiquer le kilométrage final.</p>
+    <p class="sub">Il ne reste plus qu'à indiquer le kilométrage final.</p>
 
     <div class="recap" id="tripRecap"></div>
 
@@ -336,15 +432,66 @@
 
     <div class="distance" id="distanceBox">Distance parcourue : <span id="distanceVal">0</span> km</div>
 
+    <label>État du véhicule au retour</label>
+    <div class="etat-row" id="etatRow">
+      <button type="button" class="etat-btn" data-etat="Propre">Propre</button>
+      <button type="button" class="etat-btn" data-etat="À nettoyer">À nettoyer</button>
+    </div>
+
     <button class="primary" id="endBtn" disabled>Terminer le trajet</button>
     <div class="msg" id="successMsg">Trajet enregistré avec succès. Merci !</div>
   </div>
 
-  <button class="toggle-history" id="toggleHistory">Voir l'historique des trajets ▾</button>
-  <div class="card hidden" id="historyCard">
-    <h2 style="font-size:15px;">Historique des relevés</h2>
-    <div class="entries" id="entriesList">
-      <div class="empty" id="emptyState">Aucun relevé enregistré pour le moment.</div>
+  <!-- LISTE DÉROULANTE PUBLIQUE : 5 DERNIERS TRAJETS -->
+  <details class="public-list">
+    <summary>Derniers trajets effectués</summary>
+    <div class="mini-list" id="miniList">
+      <div class="empty-mini" id="miniEmpty">Aucun trajet enregistré pour le moment.</div>
+    </div>
+  </details>
+
+  <!-- ESPACE RESPONSABLE (verrouillé) -->
+  <div class="card admin-card">
+    <h2>Espace responsable</h2>
+    <div id="lockZone">
+      <p class="sub" style="margin-bottom:14px;">Accès réservé — saisir le code pour consulter le tableau complet.</p>
+      <div class="lockrow">
+        <input type="password" id="adminCode" placeholder="Code d'accès" inputmode="numeric">
+        <button id="unlockBtn">Déverrouiller</button>
+      </div>
+      <div class="lock-error" id="lockError">Code incorrect.</div>
+    </div>
+
+    <div id="adminZone" class="hidden">
+      <div class="table-head">
+        <h3>Tableau complet des trajets</h3>
+        <div class="table-actions">
+          <button class="btn-secondary" id="importBtn">Importer CSV</button>
+          <button class="btn-secondary" id="exportBtn">Exporter en CSV</button>
+          <input type="file" id="csvFileInput" accept=".csv,text/csv">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Conducteur</th>
+              <th>Destination</th>
+              <th>Date départ</th>
+              <th>Heure départ</th>
+              <th>Km départ</th>
+              <th>Date arrivée</th>
+              <th>Heure arrivée</th>
+              <th>Km arrivée</th>
+              <th>Distance</th>
+              <th>État véhicule</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr class="empty-row" id="emptyRow"><td colspan="10">Aucun trajet enregistré pour le moment.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -355,9 +502,15 @@
 </footer>
 
 <script>
+  // ============ CODE D'ACCÈS RESPONSABLE ============
+  // Change ce code pour le tien avant mise en service.
+  const ADMIN_CODE = "1234";
+  // ====================================================
+
   // Éléments — Étape 1
   const departCard = document.getElementById('departCard');
   const nom = document.getElementById('nom');
+  const destination = document.getElementById('destination');
   const kmDepart = document.getElementById('kmDepart');
   const departWhen = document.getElementById('departWhen');
   const editDepartTime = document.getElementById('editDepartTime');
@@ -380,18 +533,30 @@
   const distanceVal = document.getElementById('distanceVal');
   const endBtn = document.getElementById('endBtn');
   const successMsg = document.getElementById('successMsg');
+  const etatBtns = document.querySelectorAll('.etat-btn');
+  let etatSelectionne = null;
 
-  const dot1 = document.getElementById('dot1');
-  const dot2 = document.getElementById('dot2');
+  // Liste publique
+  const miniList = document.getElementById('miniList');
+  const miniEmpty = document.getElementById('miniEmpty');
 
-  const toggleHistory = document.getElementById('toggleHistory');
-  const historyCard = document.getElementById('historyCard');
-  const entriesList = document.getElementById('entriesList');
-  const emptyState = document.getElementById('emptyState');
+  // Espace responsable
+  const lockZone = document.getElementById('lockZone');
+  const adminZone = document.getElementById('adminZone');
+  const adminCode = document.getElementById('adminCode');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const lockError = document.getElementById('lockError');
+  const tableBody = document.getElementById('tableBody');
+  const emptyRow = document.getElementById('emptyRow');
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const csvFileInput = document.getElementById('csvFileInput');
   const conditionsBtn = document.getElementById('conditionsBtn');
 
+  const STORAGE_KEY = 'trajets-savencia';
+  const SHARED = true; // tout le monde alimente le même tableau
+
   const joursFR = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
-  const moisFR = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 
   function formatWhen(d){
     const jour = joursFR[d.getDay()];
@@ -402,37 +567,30 @@
   function toDateStr(d){ return d.toISOString().split('T')[0]; }
   function toTimeStr(d){ return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
 
-  let departNow = new Date();
-  let arriveeNow = new Date();
-
   function initDepartTime(){
-    departNow = new Date();
-    departWhen.textContent = formatWhen(departNow);
-    dateDepart.value = toDateStr(departNow);
-    heureDepart.value = toTimeStr(departNow);
+    const now = new Date();
+    departWhen.textContent = formatWhen(now);
+    dateDepart.value = toDateStr(now);
+    heureDepart.value = toTimeStr(now);
   }
   function initArriveeTime(){
-    arriveeNow = new Date();
-    arriveeWhen.textContent = formatWhen(arriveeNow);
-    dateArrivee.value = toDateStr(arriveeNow);
-    heureArrivee.value = toTimeStr(arriveeNow);
+    const now = new Date();
+    arriveeWhen.textContent = formatWhen(now);
+    dateArrivee.value = toDateStr(now);
+    heureArrivee.value = toTimeStr(now);
   }
 
-  editDepartTime.addEventListener('click', ()=>{
-    manualDepartTime.classList.toggle('show');
-  });
-  editArriveeTime.addEventListener('click', ()=>{
-    manualArriveeTime.classList.toggle('show');
-  });
-  dateDepart.addEventListener('change', ()=>{ departWhen.textContent = 'Heure personnalisée'; });
-  heureDepart.addEventListener('change', ()=>{ departWhen.textContent = 'Heure personnalisée'; });
-  dateArrivee.addEventListener('change', ()=>{ arriveeWhen.textContent = 'Heure personnalisée'; });
-  heureArrivee.addEventListener('change', ()=>{ arriveeWhen.textContent = 'Heure personnalisée'; });
+  editDepartTime.addEventListener('click', ()=> manualDepartTime.classList.toggle('show'));
+  editArriveeTime.addEventListener('click', ()=> manualArriveeTime.classList.toggle('show'));
+  dateDepart.addEventListener('change', ()=> departWhen.textContent = 'Heure personnalisée');
+  heureDepart.addEventListener('change', ()=> departWhen.textContent = 'Heure personnalisée');
+  dateArrivee.addEventListener('change', ()=> arriveeWhen.textContent = 'Heure personnalisée');
+  heureArrivee.addEventListener('change', ()=> arriveeWhen.textContent = 'Heure personnalisée');
 
   function validateDepartForm(){
-    startBtn.disabled = !(nom.value.trim() && kmDepart.value !== '' && attestation.checked && dateDepart.value && heureDepart.value);
+    startBtn.disabled = !(nom.value.trim() && destination.value.trim() && kmDepart.value !== '' && attestation.checked && dateDepart.value && heureDepart.value);
   }
-  [nom, kmDepart, attestation].forEach(el=>{
+  [nom, destination, kmDepart, attestation].forEach(el=>{
     el.addEventListener('input', validateDepartForm);
     el.addEventListener('change', validateDepartForm);
   });
@@ -442,14 +600,25 @@
     if(!isNaN(depKm) && !isNaN(a) && a >= depKm){
       distanceVal.textContent = (a-depKm).toLocaleString('fr-FR');
       distanceBox.style.display = 'block';
-      endBtn.disabled = !(dateArrivee.value && heureArrivee.value);
+      endBtn.disabled = !(dateArrivee.value && heureArrivee.value && etatSelectionne);
     } else {
       distanceBox.style.display = 'none';
       endBtn.disabled = true;
     }
   }
 
-  // ---- Gestion du trajet en cours (stocké par utilisateur/téléphone) ----
+  etatBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      etatBtns.forEach(b=> b.classList.remove('selected'));
+      btn.classList.add('selected');
+      etatSelectionne = btn.dataset.etat;
+      const trip = { kmDepartRef: kmDepart.value }; // recalcule juste la validation
+      const d = parseFloat(kmArrivee.value);
+      if(!isNaN(d)) endBtn.disabled = !(dateArrivee.value && heureArrivee.value && etatSelectionne);
+    });
+  });
+
+  // ---- Trajet en cours (personnel à chaque téléphone) ----
   async function getTripInProgress(){
     try{
       const result = await window.storage.get('trajet-en-cours', false);
@@ -466,8 +635,6 @@
   function showDepartStep(){
     departCard.classList.remove('hidden');
     returnCard.classList.add('hidden');
-    dot1.style.color = 'var(--sav-blue)';
-    dot2.style.color = 'var(--line)';
     initDepartTime();
     validateDepartForm();
   }
@@ -475,11 +642,13 @@
   function showReturnStep(trip){
     departCard.classList.add('hidden');
     returnCard.classList.remove('hidden');
-    tripRecap.innerHTML = `Conducteur : <b>${trip.nom}</b><br>Départ : <b>${trip.dateDepart} à ${trip.heureDepart}</b> — <b>${Number(trip.kmDepart).toLocaleString('fr-FR')} km</b>`;
+    tripRecap.innerHTML = `Conducteur : <b>${trip.nom}</b><br>Destination : <b>${trip.destination}</b><br>Départ : <b>${trip.dateDepart} à ${trip.heureDepart}</b> — <b>${Number(trip.kmDepart).toLocaleString('fr-FR')} km</b>`;
     initArriveeTime();
     kmArrivee.value = '';
     distanceBox.style.display = 'none';
     endBtn.disabled = true;
+    etatSelectionne = null;
+    etatBtns.forEach(b=> b.classList.remove('selected'));
     kmArrivee.oninput = ()=> updateDistance(Number(trip.kmDepart));
     dateArrivee.onchange = ()=> updateDistance(Number(trip.kmDepart));
     heureArrivee.onchange = ()=> updateDistance(Number(trip.kmDepart));
@@ -488,6 +657,7 @@
   startBtn.addEventListener('click', async ()=>{
     const trip = {
       nom: nom.value.trim(),
+      destination: destination.value.trim(),
       dateDepart: dateDepart.value,
       heureDepart: heureDepart.value,
       kmDepart: parseFloat(kmDepart.value)
@@ -504,31 +674,29 @@
     if(!trip) return;
     const entry = {
       nom: trip.nom,
+      destination: trip.destination,
       dateDepart: trip.dateDepart,
       heureDepart: trip.heureDepart,
       kmDepart: Number(trip.kmDepart),
       dateArrivee: dateArrivee.value,
       heureArrivee: heureArrivee.value,
-      kmArrivee: parseFloat(kmArrivee.value)
+      kmArrivee: parseFloat(kmArrivee.value),
+      etatVehicule: etatSelectionne
     };
     endBtn.disabled = true;
     endBtn.textContent = 'Enregistrement...';
     try{
-      let trajets = [];
-      try{
-        const result = await window.storage.get('trajets-savencia', false);
-        trajets = result ? JSON.parse(result.value) : [];
-      } catch(e){ trajets = []; }
+      const trajets = await loadTrajetsRaw();
       trajets.push(entry);
-      await window.storage.set('trajets-savencia', JSON.stringify(trajets), false);
+      await window.storage.set(STORAGE_KEY, JSON.stringify(trajets), SHARED);
       await clearTripInProgress();
 
-      renderEntry(entry);
-      emptyState.style.display = 'none';
+      addRow(entry);       // tableau admin (si déverrouillé)
+      prependMini(entry);  // liste publique des 5 derniers
       successMsg.style.display = 'block';
 
-      // reset form fields
       nom.value = '';
+      destination.value = '';
       kmDepart.value = '';
       attestation.checked = false;
 
@@ -543,34 +711,177 @@
     endBtn.textContent = 'Terminer le trajet';
   });
 
-  function renderEntry(entry){
-    const div = document.createElement('div');
-    div.className = 'entry';
-    const distance = entry.kmArrivee - entry.kmDepart;
-    div.innerHTML = `
-      <div class="top"><span>${entry.nom}</span><span>${distance.toLocaleString('fr-FR')} km</span></div>
-      <div class="meta">
-        Départ : ${entry.dateDepart} à ${entry.heureDepart} — ${entry.kmDepart.toLocaleString('fr-FR')} km<br>
-        Arrivée : ${entry.dateArrivee} à ${entry.heureArrivee} — ${entry.kmArrivee.toLocaleString('fr-FR')} km
-      </div>
-    `;
-    entriesList.prepend(div);
-  }
-
-  async function loadEntries(){
+  // ---- Chargement des données partagées ----
+  async function loadTrajetsRaw(){
     try{
-      const result = await window.storage.get('trajets-savencia', false);
-      const trajets = result ? JSON.parse(result.value) : [];
-      if(trajets.length){
-        emptyState.style.display = 'none';
-        trajets.forEach(renderEntry);
-      }
-    } catch(e){ /* aucun relevé encore */ }
+      const result = await window.storage.get(STORAGE_KEY, SHARED);
+      return result ? JSON.parse(result.value) : [];
+    } catch(e){ return []; }
   }
 
-  toggleHistory.addEventListener('click', ()=>{
-    historyCard.classList.toggle('hidden');
-    toggleHistory.textContent = historyCard.classList.contains('hidden') ? "Voir l'historique des trajets ▾" : "Masquer l'historique ▴";
+  // ---- Liste publique : 5 derniers trajets ----
+  function miniItemHtml(entry){
+    const etat = entry.etatVehicule || 'Non renseigné';
+    const etatColor = etat === 'Propre' ? 'var(--ok)' : (etat === 'À nettoyer' ? 'var(--sav-orange)' : 'var(--muted)');
+    return `
+      <div class="mini-item">
+        <span class="who">${entry.nom}</span> → <span class="where">${entry.destination || 'Destination non précisée'}</span><br>
+        <span class="when">Départ ${entry.dateDepart} à ${entry.heureDepart} · Retour ${entry.dateArrivee} à ${entry.heureArrivee}</span><br>
+        <span class="when">Véhicule au retour : <b style="color:${etatColor};">${etat}</b></span>
+      </div>`;
+  }
+  function prependMini(entry){
+    miniEmpty.style.display = 'none';
+    miniList.insertAdjacentHTML('afterbegin', miniItemHtml(entry));
+    // garder seulement les 5 premiers éléments affichés
+    const items = miniList.querySelectorAll('.mini-item');
+    items.forEach((el, idx)=>{ if(idx >= 5) el.remove(); });
+  }
+  async function loadMiniList(){
+    const trajets = await loadTrajetsRaw();
+    if(trajets.length === 0) return;
+    miniEmpty.style.display = 'none';
+    const last5 = trajets.slice(-5).reverse();
+    miniList.innerHTML = last5.map(miniItemHtml).join('');
+  }
+
+  // ---- Tableau responsable ----
+  function addRow(entry){
+    if(!emptyRow.classList.contains('hidden')) emptyRow.classList.add('hidden');
+    const distance = entry.kmArrivee - entry.kmDepart;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${entry.nom}</td>
+      <td>${entry.destination || ''}</td>
+      <td>${entry.dateDepart}</td>
+      <td>${entry.heureDepart}</td>
+      <td>${entry.kmDepart.toLocaleString('fr-FR')}</td>
+      <td>${entry.dateArrivee}</td>
+      <td>${entry.heureArrivee}</td>
+      <td>${entry.kmArrivee.toLocaleString('fr-FR')}</td>
+      <td class="dist">${distance.toLocaleString('fr-FR')} km</td>
+      <td>${entry.etatVehicule || ''}</td>
+    `;
+    tableBody.prepend(tr);
+  }
+  async function loadAdminTable(){
+    const trajets = await loadTrajetsRaw();
+    tableBody.innerHTML = '';
+    if(trajets.length){
+      trajets.slice().reverse().forEach(addRow);
+    } else {
+      tableBody.appendChild(emptyRow);
+      emptyRow.classList.remove('hidden');
+    }
+  }
+
+  // ---- Déverrouillage espace responsable ----
+  unlockBtn.addEventListener('click', async ()=>{
+    if(adminCode.value === ADMIN_CODE){
+      lockError.style.display = 'none';
+      lockZone.classList.add('hidden');
+      adminZone.classList.remove('hidden');
+      await loadAdminTable();
+    } else {
+      lockError.style.display = 'block';
+    }
+  });
+  adminCode.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') unlockBtn.click(); });
+
+  // ---- Export CSV (responsable uniquement) ----
+  function csvEscape(val){
+    const s = String(val ?? '');
+    if(s.includes(',') || s.includes('"') || s.includes('\n')){
+      return '"' + s.replace(/"/g,'""') + '"';
+    }
+    return s;
+  }
+
+  exportBtn.addEventListener('click', async ()=>{
+    const trajets = await loadTrajetsRaw();
+    const headers = ['Conducteur','Destination','Date depart','Heure depart','Km depart','Date arrivee','Heure arrivee','Km arrivee','Distance (km)','Etat vehicule'];
+    const rows = trajets.map(t => [
+      t.nom, t.destination || '', t.dateDepart, t.heureDepart, t.kmDepart, t.dateArrivee, t.heureArrivee, t.kmArrivee, (t.kmArrivee - t.kmDepart), t.etatVehicule || ''
+    ]);
+    const csvContent = [headers, ...rows].map(r => r.map(csvEscape).join(',')).join('\r\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const dateStr = toDateStr(new Date());
+    const filename = `suivi-kilometrique-savencia-${dateStr}.csv`;
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=> URL.revokeObjectURL(url), 2000);
+  });
+
+  // ---- Import CSV (responsable uniquement) ----
+  importBtn.addEventListener('click', ()=> csvFileInput.click());
+
+  function parseCsvLine(line){
+    const result = [];
+    let cur = '';
+    let inQuotes = false;
+    for(let i=0;i<line.length;i++){
+      const ch = line[i];
+      if(inQuotes){
+        if(ch === '"'){
+          if(line[i+1] === '"'){ cur += '"'; i++; }
+          else { inQuotes = false; }
+        } else { cur += ch; }
+      } else {
+        if(ch === '"'){ inQuotes = true; }
+        else if(ch === ','){ result.push(cur); cur = ''; }
+        else { cur += ch; }
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  csvFileInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt)=>{
+      try{
+        let text = evt.target.result;
+        if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        const lines = text.split(/\r\n|\n/).filter(l => l.trim() !== '');
+        if(lines.length < 2){ alert('Le fichier CSV ne contient aucune donnée.'); return; }
+        const dataLines = lines.slice(1);
+        const imported = dataLines.map(line => {
+          const c = parseCsvLine(line);
+          return {
+            nom: c[0] || '',
+            destination: c[1] || '',
+            dateDepart: c[2] || '',
+            heureDepart: c[3] || '',
+            kmDepart: parseFloat(c[4]) || 0,
+            dateArrivee: c[5] || '',
+            heureArrivee: c[6] || '',
+            kmArrivee: parseFloat(c[7]) || 0,
+            etatVehicule: c[9] || ''
+          };
+        });
+        const existing = await loadTrajetsRaw();
+        const merged = existing.concat(imported);
+        await window.storage.set(STORAGE_KEY, JSON.stringify(merged), SHARED);
+
+        await loadAdminTable();
+        await loadMiniList();
+
+        alert(`${imported.length} trajet(s) importé(s) avec succès.`);
+      } catch(err){
+        alert("Erreur lors de la lecture du fichier CSV. Vérifiez le format.");
+      }
+      csvFileInput.value = '';
+    };
+    reader.readAsText(file, 'UTF-8');
   });
 
   conditionsBtn.addEventListener('click', ()=>{
@@ -579,7 +890,7 @@
 
   // ---- Démarrage de l'appli ----
   (async function init(){
-    loadEntries();
+    await loadMiniList();
     const tripInProgress = await getTripInProgress();
     if(tripInProgress){
       showReturnStep(tripInProgress);
