@@ -49,6 +49,11 @@
   .brand-text h1{
     margin:2px 0 0;font-size:19px;font-weight:700;
   }
+  .conn-status{
+    font-size:10px;
+    opacity:0.75;
+    margin-top:3px;
+  }
   main{
     max-width:720px;
     margin:0 auto;
@@ -220,9 +225,16 @@
     font-weight:600;
     display:none;
   }
+  .err{
+    font-size:13px;
+    margin-top:10px;
+    text-align:center;
+    color:#b3261e;
+    font-weight:600;
+    display:none;
+  }
   .hidden{display:none !important;}
 
-  /* Liste déroulante des 5 derniers trajets */
   details.public-list{
     background:#fff;
     border:1px solid var(--line);
@@ -264,7 +276,6 @@
     padding:14px 0;
   }
 
-  /* Espace responsable */
   .admin-card{
     border:1.5px dashed #c7d0d4;
   }
@@ -372,6 +383,7 @@
     <div class="brand-text">
       <div class="group">Groupe Savencia</div>
       <h1>Suivi Kilométrique Véhicule</h1>
+      <div class="conn-status" id="connStatus">Connexion à la base…</div>
     </div>
   </div>
 </header>
@@ -408,6 +420,7 @@
     </div>
 
     <button class="primary" id="startBtn" disabled>Démarrer le trajet</button>
+    <div class="err" id="startErr">Une erreur est survenue lors de l'enregistrement. Merci de réessayer.</div>
   </div>
 
   <!-- ÉTAPE 2 : RETOUR -->
@@ -440,6 +453,7 @@
 
     <button class="primary" id="endBtn" disabled>Terminer le trajet</button>
     <div class="msg" id="successMsg">Trajet enregistré avec succès. Merci !</div>
+    <div class="err" id="endErr">Une erreur est survenue lors de l'enregistrement. Merci de réessayer.</div>
   </div>
 
   <!-- LISTE DÉROULANTE PUBLIQUE : 5 DERNIERS TRAJETS -->
@@ -502,6 +516,20 @@
 </footer>
 
 <script>
+  // ============ CONNEXION SUPABASE ============
+  const SUPABASE_URL = "https://vqvuzxlulfoyxvzpbtlw.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_thfCJN4h6qnpyBhAyL2PDw_58jf_-LC";
+  const TABLE = "suivikm_voiture_service_trajets";
+  const REST_URL = `${SUPABASE_URL}/rest/v1/${TABLE}`;
+
+  function supaHeaders(extra){
+    return Object.assign({
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json"
+    }, extra || {});
+  }
+
   // ============ CODE D'ACCÈS RESPONSABLE ============
   // Change ce code pour le tien avant mise en service.
   const ADMIN_CODE = "1234";
@@ -519,6 +547,7 @@
   const heureDepart = document.getElementById('heureDepart');
   const attestation = document.getElementById('attestation');
   const startBtn = document.getElementById('startBtn');
+  const startErr = document.getElementById('startErr');
 
   // Éléments — Étape 2
   const returnCard = document.getElementById('returnCard');
@@ -533,6 +562,7 @@
   const distanceVal = document.getElementById('distanceVal');
   const endBtn = document.getElementById('endBtn');
   const successMsg = document.getElementById('successMsg');
+  const endErr = document.getElementById('endErr');
   const etatBtns = document.querySelectorAll('.etat-btn');
   let etatSelectionne = null;
 
@@ -552,9 +582,7 @@
   const importBtn = document.getElementById('importBtn');
   const csvFileInput = document.getElementById('csvFileInput');
   const conditionsBtn = document.getElementById('conditionsBtn');
-
-  const STORAGE_KEY = 'trajets-savencia';
-  const SHARED = true; // tout le monde alimente le même tableau
+  const connStatus = document.getElementById('connStatus');
 
   const joursFR = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
 
@@ -612,25 +640,22 @@
       etatBtns.forEach(b=> b.classList.remove('selected'));
       btn.classList.add('selected');
       etatSelectionne = btn.dataset.etat;
-      const trip = { kmDepartRef: kmDepart.value }; // recalcule juste la validation
       const d = parseFloat(kmArrivee.value);
       if(!isNaN(d)) endBtn.disabled = !(dateArrivee.value && heureArrivee.value && etatSelectionne);
     });
   });
 
-  // ---- Trajet en cours (personnel à chaque téléphone) ----
-  async function getTripInProgress(){
-    try{
-      const result = await window.storage.get('trajet-en-cours', false);
-      return result ? JSON.parse(result.value) : null;
-    } catch(e){ return null; }
+  // ---- Trajet en cours : conservé localement sur l'appareil (id de la ligne Supabase) ----
+  function getLocalTripId(){
+    try{ return localStorage.getItem('trajet_en_cours_id'); } catch(e){ return sessionTripId; }
   }
-  async function setTripInProgress(trip){
-    await window.storage.set('trajet-en-cours', JSON.stringify(trip), false);
+  function setLocalTripId(id){
+    try{ localStorage.setItem('trajet_en_cours_id', id); } catch(e){ sessionTripId = id; }
   }
-  async function clearTripInProgress(){
-    try{ await window.storage.delete('trajet-en-cours', false); } catch(e){}
+  function clearLocalTripId(){
+    try{ localStorage.removeItem('trajet_en_cours_id'); } catch(e){ sessionTripId = null; }
   }
+  let sessionTripId = null; // repli mémoire si localStorage indisponible
 
   function showDepartStep(){
     departCard.classList.remove('hidden');
@@ -642,57 +667,75 @@
   function showReturnStep(trip){
     departCard.classList.add('hidden');
     returnCard.classList.remove('hidden');
-    tripRecap.innerHTML = `Conducteur : <b>${trip.nom}</b><br>Destination : <b>${trip.destination}</b><br>Départ : <b>${trip.dateDepart} à ${trip.heureDepart}</b> — <b>${Number(trip.kmDepart).toLocaleString('fr-FR')} km</b>`;
+    tripRecap.innerHTML = `Conducteur : <b>${trip.nom}</b><br>Destination : <b>${trip.destination || ''}</b><br>Départ : <b>${trip.date_depart} à ${trip.heure_depart}</b> — <b>${Number(trip.km_depart).toLocaleString('fr-FR')} km</b>`;
     initArriveeTime();
     kmArrivee.value = '';
     distanceBox.style.display = 'none';
     endBtn.disabled = true;
+    endErr.style.display = 'none';
     etatSelectionne = null;
     etatBtns.forEach(b=> b.classList.remove('selected'));
-    kmArrivee.oninput = ()=> updateDistance(Number(trip.kmDepart));
-    dateArrivee.onchange = ()=> updateDistance(Number(trip.kmDepart));
-    heureArrivee.onchange = ()=> updateDistance(Number(trip.kmDepart));
+    kmArrivee.oninput = ()=> updateDistance(Number(trip.km_depart));
+    dateArrivee.onchange = ()=> updateDistance(Number(trip.km_depart));
+    heureArrivee.onchange = ()=> updateDistance(Number(trip.km_depart));
   }
 
+  // ---- Démarrer un trajet : insertion Supabase ----
   startBtn.addEventListener('click', async ()=>{
-    const trip = {
+    const payload = {
       nom: nom.value.trim(),
       destination: destination.value.trim(),
-      dateDepart: dateDepart.value,
-      heureDepart: heureDepart.value,
-      kmDepart: parseFloat(kmDepart.value)
+      date_depart: dateDepart.value,
+      heure_depart: heureDepart.value,
+      km_depart: parseFloat(kmDepart.value)
     };
     startBtn.disabled = true;
     startBtn.textContent = 'Démarrage...';
-    await setTripInProgress(trip);
+    startErr.style.display = 'none';
+    try{
+      const res = await fetch(REST_URL, {
+        method: 'POST',
+        headers: supaHeaders({ "Prefer": "return=representation" }),
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('insert failed');
+      const rows = await res.json();
+      const trip = rows[0];
+      setLocalTripId(trip.id);
+      showReturnStep(trip);
+    } catch(e){
+      startErr.style.display = 'block';
+    }
+    startBtn.disabled = false;
     startBtn.textContent = 'Démarrer le trajet';
-    showReturnStep(trip);
   });
 
+  // ---- Terminer un trajet : mise à jour Supabase ----
   endBtn.addEventListener('click', async ()=>{
-    const trip = await getTripInProgress();
-    if(!trip) return;
-    const entry = {
-      nom: trip.nom,
-      destination: trip.destination,
-      dateDepart: trip.dateDepart,
-      heureDepart: trip.heureDepart,
-      kmDepart: Number(trip.kmDepart),
-      dateArrivee: dateArrivee.value,
-      heureArrivee: heureArrivee.value,
-      kmArrivee: parseFloat(kmArrivee.value),
-      etatVehicule: etatSelectionne
+    const tripId = getLocalTripId();
+    if(!tripId){ showDepartStep(); return; }
+    const patch = {
+      date_arrivee: dateArrivee.value,
+      heure_arrivee: heureArrivee.value,
+      km_arrivee: parseFloat(kmArrivee.value),
+      etat_vehicule: etatSelectionne
     };
     endBtn.disabled = true;
     endBtn.textContent = 'Enregistrement...';
+    endErr.style.display = 'none';
     try{
-      const trajets = await loadTrajetsRaw();
-      trajets.push(entry);
-      await window.storage.set(STORAGE_KEY, JSON.stringify(trajets), SHARED);
-      await clearTripInProgress();
+      const res = await fetch(`${REST_URL}?id=eq.${tripId}`, {
+        method: 'PATCH',
+        headers: supaHeaders({ "Prefer": "return=representation" }),
+        body: JSON.stringify(patch)
+      });
+      if(!res.ok) throw new Error('update failed');
+      const rows = await res.json();
+      const entry = rows[0];
 
-      addRow(entry);       // tableau admin (si déverrouillé)
-      prependMini(entry);  // liste publique des 5 derniers
+      clearLocalTripId();
+      addRow(entry);
+      await loadMiniList();
       successMsg.style.display = 'block';
 
       nom.value = '';
@@ -705,72 +748,78 @@
         showDepartStep();
       }, 1800);
     } catch(e){
-      alert("Erreur lors de l'enregistrement. Merci de réessayer.");
+      endErr.style.display = 'block';
       endBtn.disabled = false;
     }
     endBtn.textContent = 'Terminer le trajet';
   });
 
-  // ---- Chargement des données partagées ----
-  async function loadTrajetsRaw(){
-    try{
-      const result = await window.storage.get(STORAGE_KEY, SHARED);
-      return result ? JSON.parse(result.value) : [];
-    } catch(e){ return []; }
+  // ---- Lecture des données ----
+  async function fetchLast5(){
+    const url = `${REST_URL}?select=*&km_arrivee=not.is.null&order=created_at.desc&limit=5`;
+    const res = await fetch(url, { headers: supaHeaders() });
+    if(!res.ok) throw new Error('fetch failed');
+    return res.json();
+  }
+  async function fetchAll(){
+    const url = `${REST_URL}?select=*&order=created_at.desc`;
+    const res = await fetch(url, { headers: supaHeaders() });
+    if(!res.ok) throw new Error('fetch failed');
+    return res.json();
   }
 
   // ---- Liste publique : 5 derniers trajets ----
   function miniItemHtml(entry){
-    const etat = entry.etatVehicule || 'Non renseigné';
+    const etat = entry.etat_vehicule || 'Non renseigné';
     const etatColor = etat === 'Propre' ? 'var(--ok)' : (etat === 'À nettoyer' ? 'var(--sav-orange)' : 'var(--muted)');
     return `
       <div class="mini-item">
         <span class="who">${entry.nom}</span> → <span class="where">${entry.destination || 'Destination non précisée'}</span><br>
-        <span class="when">Départ ${entry.dateDepart} à ${entry.heureDepart} · Retour ${entry.dateArrivee} à ${entry.heureArrivee}</span><br>
+        <span class="when">Départ ${entry.date_depart} à ${entry.heure_depart} · Retour ${entry.date_arrivee} à ${entry.heure_arrivee}</span><br>
         <span class="when">Véhicule au retour : <b style="color:${etatColor};">${etat}</b></span>
       </div>`;
   }
-  function prependMini(entry){
-    miniEmpty.style.display = 'none';
-    miniList.insertAdjacentHTML('afterbegin', miniItemHtml(entry));
-    // garder seulement les 5 premiers éléments affichés
-    const items = miniList.querySelectorAll('.mini-item');
-    items.forEach((el, idx)=>{ if(idx >= 5) el.remove(); });
-  }
   async function loadMiniList(){
-    const trajets = await loadTrajetsRaw();
-    if(trajets.length === 0) return;
-    miniEmpty.style.display = 'none';
-    const last5 = trajets.slice(-5).reverse();
-    miniList.innerHTML = last5.map(miniItemHtml).join('');
+    try{
+      const trajets = await fetchLast5();
+      if(trajets.length === 0){ miniEmpty.style.display = 'block'; miniList.innerHTML = ''; miniList.appendChild(miniEmpty); return; }
+      miniEmpty.style.display = 'none';
+      miniList.innerHTML = trajets.map(miniItemHtml).join('');
+    } catch(e){ /* silencieux */ }
   }
 
   // ---- Tableau responsable ----
   function addRow(entry){
     if(!emptyRow.classList.contains('hidden')) emptyRow.classList.add('hidden');
-    const distance = entry.kmArrivee - entry.kmDepart;
+    const distance = (entry.km_arrivee != null) ? (entry.km_arrivee - entry.km_depart) : null;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${entry.nom}</td>
       <td>${entry.destination || ''}</td>
-      <td>${entry.dateDepart}</td>
-      <td>${entry.heureDepart}</td>
-      <td>${entry.kmDepart.toLocaleString('fr-FR')}</td>
-      <td>${entry.dateArrivee}</td>
-      <td>${entry.heureArrivee}</td>
-      <td>${entry.kmArrivee.toLocaleString('fr-FR')}</td>
-      <td class="dist">${distance.toLocaleString('fr-FR')} km</td>
-      <td>${entry.etatVehicule || ''}</td>
+      <td>${entry.date_depart || ''}</td>
+      <td>${entry.heure_depart || ''}</td>
+      <td>${Number(entry.km_depart).toLocaleString('fr-FR')}</td>
+      <td>${entry.date_arrivee || ''}</td>
+      <td>${entry.heure_arrivee || ''}</td>
+      <td>${entry.km_arrivee != null ? Number(entry.km_arrivee).toLocaleString('fr-FR') : ''}</td>
+      <td class="dist">${distance != null ? distance.toLocaleString('fr-FR') + ' km' : 'En cours'}</td>
+      <td>${entry.etat_vehicule || ''}</td>
     `;
     tableBody.prepend(tr);
   }
   async function loadAdminTable(){
-    const trajets = await loadTrajetsRaw();
     tableBody.innerHTML = '';
-    if(trajets.length){
-      trajets.slice().reverse().forEach(addRow);
-    } else {
+    try{
+      const trajets = await fetchAll();
+      if(trajets.length){
+        trajets.slice().reverse().forEach(addRow);
+      } else {
+        tableBody.appendChild(emptyRow);
+        emptyRow.classList.remove('hidden');
+      }
+    } catch(e){
       tableBody.appendChild(emptyRow);
+      emptyRow.textContent = "Erreur de chargement des données.";
       emptyRow.classList.remove('hidden');
     }
   }
@@ -798,10 +847,13 @@
   }
 
   exportBtn.addEventListener('click', async ()=>{
-    const trajets = await loadTrajetsRaw();
+    let trajets = [];
+    try{ trajets = await fetchAll(); } catch(e){ alert("Impossible de récupérer les données."); return; }
     const headers = ['Conducteur','Destination','Date depart','Heure depart','Km depart','Date arrivee','Heure arrivee','Km arrivee','Distance (km)','Etat vehicule'];
     const rows = trajets.map(t => [
-      t.nom, t.destination || '', t.dateDepart, t.heureDepart, t.kmDepart, t.dateArrivee, t.heureArrivee, t.kmArrivee, (t.kmArrivee - t.kmDepart), t.etatVehicule || ''
+      t.nom, t.destination || '', t.date_depart, t.heure_depart, t.km_depart,
+      t.date_arrivee || '', t.heure_arrivee || '', t.km_arrivee != null ? t.km_arrivee : '',
+      t.km_arrivee != null ? (t.km_arrivee - t.km_depart) : '', t.etat_vehicule || ''
     ]);
     const csvContent = [headers, ...rows].map(r => r.map(csvEscape).join(',')).join('\r\n');
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -859,25 +911,27 @@
           return {
             nom: c[0] || '',
             destination: c[1] || '',
-            dateDepart: c[2] || '',
-            heureDepart: c[3] || '',
-            kmDepart: parseFloat(c[4]) || 0,
-            dateArrivee: c[5] || '',
-            heureArrivee: c[6] || '',
-            kmArrivee: parseFloat(c[7]) || 0,
-            etatVehicule: c[9] || ''
+            date_depart: c[2] || null,
+            heure_depart: c[3] || null,
+            km_depart: parseFloat(c[4]) || 0,
+            date_arrivee: c[5] || null,
+            heure_arrivee: c[6] || null,
+            km_arrivee: c[7] !== '' ? parseFloat(c[7]) : null,
+            etat_vehicule: c[9] || null
           };
         });
-        const existing = await loadTrajetsRaw();
-        const merged = existing.concat(imported);
-        await window.storage.set(STORAGE_KEY, JSON.stringify(merged), SHARED);
+        const res = await fetch(REST_URL, {
+          method: 'POST',
+          headers: supaHeaders({ "Prefer": "return=representation" }),
+          body: JSON.stringify(imported)
+        });
+        if(!res.ok) throw new Error('import failed');
 
         await loadAdminTable();
         await loadMiniList();
-
         alert(`${imported.length} trajet(s) importé(s) avec succès.`);
       } catch(err){
-        alert("Erreur lors de la lecture du fichier CSV. Vérifiez le format.");
+        alert("Erreur lors de l'import du fichier CSV. Vérifiez le format.");
       }
       csvFileInput.value = '';
     };
@@ -890,13 +944,29 @@
 
   // ---- Démarrage de l'appli ----
   (async function init(){
-    await loadMiniList();
-    const tripInProgress = await getTripInProgress();
-    if(tripInProgress){
-      showReturnStep(tripInProgress);
-    } else {
-      showDepartStep();
+    try{
+      await fetch(`${REST_URL}?select=id&limit=1`, { headers: supaHeaders() });
+      connStatus.textContent = 'Connecté à la base de données';
+    } catch(e){
+      connStatus.textContent = 'Connexion à la base indisponible';
     }
+
+    await loadMiniList();
+
+    const tripId = getLocalTripId();
+    if(tripId){
+      try{
+        const res = await fetch(`${REST_URL}?id=eq.${tripId}&select=*`, { headers: supaHeaders() });
+        const rows = await res.json();
+        if(rows.length && rows[0].km_arrivee == null){
+          showReturnStep(rows[0]);
+          return;
+        } else {
+          clearLocalTripId();
+        }
+      } catch(e){ /* on retombe sur l'étape départ */ }
+    }
+    showDepartStep();
   })();
 </script>
 
