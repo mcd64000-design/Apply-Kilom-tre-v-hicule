@@ -356,6 +356,46 @@
     padding:20px;
   }
   #csvFileInput{display:none;}
+
+  /* Fenêtre Conditions d'utilisation */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(26,26,26,0.75);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    z-index:1000;
+  }
+  .modal-box{
+    position:relative;
+    background:#fff;
+    border-radius:12px;
+    padding:16px;
+    max-width:min(600px, 92vw);
+    max-height:88vh;
+    overflow:auto;
+  }
+  .modal-box img{
+    display:block;
+    width:100%;
+    height:auto;
+    border-radius:6px;
+  }
+  .modal-close{
+    position:absolute;
+    top:-14px;
+    right:-14px;
+    width:34px;height:34px;
+    border-radius:50%;
+    background:var(--sav-teal);
+    color:#fff;
+    border:2px solid #fff;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+  }
   footer{
     max-width:720px;
     margin:0 auto;
@@ -507,6 +547,13 @@
           </tbody>
         </table>
       </div>
+    </div>
+  </div>
+  <!-- Fenêtre Conditions d'utilisation -->
+  <div class="modal-overlay hidden" id="conditionsModal">
+    <div class="modal-box">
+      <button class="modal-close" id="closeConditionsModal" aria-label="Fermer">✕</button>
+      <img src="images.jpg" alt="Conditions d'utilisation" id="conditionsImg">
     </div>
   </div>
 
@@ -942,8 +989,17 @@
     reader.readAsText(file, 'UTF-8');
   });
 
+  const conditionsModal = document.getElementById('conditionsModal');
+  const closeConditionsModal = document.getElementById('closeConditionsModal');
+
   conditionsBtn.addEventListener('click', ()=>{
-    alert("Conditions d'utilisation — à venir. Cette section sera complétée prochainement.");
+    conditionsModal.classList.remove('hidden');
+  });
+  closeConditionsModal.addEventListener('click', ()=>{
+    conditionsModal.classList.add('hidden');
+  });
+  conditionsModal.addEventListener('click', (e)=>{
+    if(e.target === conditionsModal) conditionsModal.classList.add('hidden');
   });
 
   // ---- Démarrage de l'appli ----
