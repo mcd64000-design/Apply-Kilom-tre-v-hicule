@@ -499,10 +499,11 @@
               <th>Km arrivée</th>
               <th>Distance</th>
               <th>État véhicule</th>
+              <th>Permis valide</th>
             </tr>
           </thead>
           <tbody id="tableBody">
-            <tr class="empty-row" id="emptyRow"><td colspan="10">Aucun trajet enregistré pour le moment.</td></tr>
+            <tr class="empty-row" id="emptyRow"><td colspan="11">Aucun trajet enregistré pour le moment.</td></tr>
           </tbody>
         </table>
       </div>
@@ -687,7 +688,8 @@
       destination: destination.value.trim(),
       date_depart: dateDepart.value,
       heure_depart: heureDepart.value,
-      km_depart: parseFloat(kmDepart.value)
+      km_depart: parseFloat(kmDepart.value),
+      permis_valide: attestation.checked
     };
     startBtn.disabled = true;
     startBtn.textContent = 'Démarrage...';
@@ -804,6 +806,7 @@
       <td>${entry.km_arrivee != null ? Number(entry.km_arrivee).toLocaleString('fr-FR') : ''}</td>
       <td class="dist">${distance != null ? distance.toLocaleString('fr-FR') + ' km' : 'En cours'}</td>
       <td>${entry.etat_vehicule || ''}</td>
+      <td>${entry.permis_valide ? 'Oui' : 'Non'}</td>
     `;
     tableBody.prepend(tr);
   }
@@ -849,11 +852,11 @@
   exportBtn.addEventListener('click', async ()=>{
     let trajets = [];
     try{ trajets = await fetchAll(); } catch(e){ alert("Impossible de récupérer les données."); return; }
-    const headers = ['Conducteur','Destination','Date depart','Heure depart','Km depart','Date arrivee','Heure arrivee','Km arrivee','Distance (km)','Etat vehicule'];
+    const headers = ['Conducteur','Destination','Date depart','Heure depart','Km depart','Date arrivee','Heure arrivee','Km arrivee','Distance (km)','Etat vehicule','Permis valide'];
     const rows = trajets.map(t => [
       t.nom, t.destination || '', t.date_depart, t.heure_depart, t.km_depart,
       t.date_arrivee || '', t.heure_arrivee || '', t.km_arrivee != null ? t.km_arrivee : '',
-      t.km_arrivee != null ? (t.km_arrivee - t.km_depart) : '', t.etat_vehicule || ''
+      t.km_arrivee != null ? (t.km_arrivee - t.km_depart) : '', t.etat_vehicule || '', t.permis_valide ? 'Oui' : 'Non'
     ]);
     const csvContent = [headers, ...rows].map(r => r.map(csvEscape).join(',')).join('\r\n');
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -917,7 +920,8 @@
             date_arrivee: c[5] || null,
             heure_arrivee: c[6] || null,
             km_arrivee: c[7] !== '' ? parseFloat(c[7]) : null,
-            etat_vehicule: c[9] || null
+            etat_vehicule: c[9] || null,
+            permis_valide: (c[10] || '').trim().toLowerCase() === 'oui'
           };
         });
         const res = await fetch(REST_URL, {
